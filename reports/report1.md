@@ -100,7 +100,8 @@ In our case, we have DFA, which is a 5-tuple, consisted of a finite set of state
 
 ---
 ## Results and Conclusion
-![The conversion from an object of grammar to an object of FA](outputs/lab1.png)
+![The conversion from an object of grammar to an object of FA](outputs/lab1_generated_strings.png)
+(outputs/lab1_FA.png)
 In conclusion, I can say that the program worked as intended, the grammar was respected and the final state of each word was F, because there was only one final state due to a terminal symbol - L. This ensures the fact that all of the words generated belong to the same language. 
 
 ---
