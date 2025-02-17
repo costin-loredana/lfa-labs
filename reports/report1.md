@@ -49,14 +49,15 @@ In our case, we have DFA, which is a 5-tuple, consisted of a finite set of state
         return "".join(self.generate_string(sym, depth+1, max_depth) for sym in expansion)
     ```
 
-   I also implemented a method that converts a grammar object into a finite automaton (Deterministic Finite Automaton). Here, I declared the set of states (derived from non-terminal symbols), the alphabet (derived from terminal symbols), the start state, the final states, and the set of transitions. I chose to begin with a terminal symbol, which in my case is `'a'`, transitioning to `S` (a non-terminal, as intended). The final state is also selected from non-terminal symbols, which in my case is `L`.
+   I also implemented a method that converts a grammar object into a finite automaton (Deterministic Finite Automaton). Here, I declared the set of states (derived from non-terminal symbols), the alphabet (derived from terminal symbols), the start state, the final states, and the set of transitions. I chose to begin with a terminal symbol, which in my case is `'a'`, transitioning to `S` (a non-terminal, as intended). The final state is also selected as `F`, and not take  `L` as final state, because it  keeps the automaton running. So, I added F to the set of states, then a condition to check the length of the right hand side is bigger than 1, and if so, it gets to the next state
 
    ```python
-   def to_finite_automaton(self):
+   def toFiniteAutomaton(self):
         states = self.non_terminals.copy()
+        states.add('F')  
         alphabet = self.terminals
         start_state = self.start_symbol
-        final_states = set()
+        final_states = {'F'}  
         transitions = {}
 
         for non_terminal, productions in self.rules.items():
@@ -67,13 +68,15 @@ In our case, we have DFA, which is a 5-tuple, consisted of a finite set of state
                     transitions[non_terminal] = {}
 
                 if len(production) > 1:
-                    next_state = production[1]  
+                    next_state = production[1] 
                     transitions[non_terminal][terminal] = next_state
                 else:
-                    transitions[non_terminal][terminal] = non_terminal  
-                    final_states.add(non_terminal)  
+                    if terminal == 'b' and non_terminal == 'L':
+                        transitions[non_terminal][terminal] = 'F'
+                    else:
+                        transitions[non_terminal][terminal] = non_terminal 
 
-        return FiniteAutomaton(states, alphabet, transitions, start_state, final_states)
+        return FiniteAutomation(states, alphabet, transitions, start_state, final_states)
     ```
 2. **The FiniteAutomaton class**
     Here, I implemented a method to check whether a string belongs to the language defined by the grammar. The method verifies if the symbols exist in the current alphabet and whether the state is valid within the set of transitions. If not, the string is rejected.
@@ -98,7 +101,7 @@ In our case, we have DFA, which is a 5-tuple, consisted of a finite set of state
 ---
 ## Results and Conclusion
 ![The conversion from an object of grammar to an object of FA](outputs/lab1.png)
-In conclusion, I can say that the program worked as intended, the grammar was respected and the final state of each word was L, because there was only one final state due to a terminal symbo - L. This ensures the fact that all of the words generated belong to the same language. 
+In conclusion, I can say that the program worked as intended, the grammar was respected and the final state of each word was F, because there was only one final state due to a terminal symbol - L. This ensures the fact that all of the words generated belong to the same language. 
 
 ---
 ## References  

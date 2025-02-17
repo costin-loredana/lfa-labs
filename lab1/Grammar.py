@@ -25,9 +25,10 @@ class Grammar:
     
     def toFiniteAutomaton(self):
         states = self.non_terminals.copy()
+        states.add('F')  
         alphabet = self.terminals
         start_state = self.start_symbol
-        final_states = set()
+        final_states = {'F'}  
         transitions = {}
 
         for non_terminal, productions in self.rules.items():
@@ -38,13 +39,16 @@ class Grammar:
                     transitions[non_terminal] = {}
 
                 if len(production) > 1:
-                    next_state = production[1]  
+                    next_state = production[1] 
                     transitions[non_terminal][terminal] = next_state
                 else:
-                    transitions[non_terminal][terminal] = non_terminal  
-                    final_states.add(non_terminal)  
+                    if terminal == 'b' and non_terminal == 'L':
+                        transitions[non_terminal][terminal] = 'F'
+                    else:
+                        transitions[non_terminal][terminal] = non_terminal 
 
         return FiniteAutomation(states, alphabet, transitions, start_state, final_states)
+
 
 
     
