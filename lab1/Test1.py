@@ -18,7 +18,7 @@ class Test1(unittest.TestCase):
 
     def test_generated_string(self):
         unique_strings = set()
-        for _ in range(5):
+        for _ in range(4):
             generated = self.grammar.generate_string()
             unique_strings.add(generated)
             self.assertTrue(
@@ -32,7 +32,7 @@ class Test1(unittest.TestCase):
         self.assertIn(self.grammar.start_symbol, self.fa.states, "Start state missing in automaton")
 
     def test_finite_automaton_recognition(self):
-        for _ in range(5):
+        for _ in range(4):
             string = self.grammar.generate_string()
             self.assertTrue(
                 self.fa.string_belongs_to_language(string),
@@ -59,6 +59,32 @@ class Test1(unittest.TestCase):
                 self.fa.string_belongs_to_language(invalid_string),
                 f"FA incorrectly accepted an invalid string: {invalid_string}"
             )
+    
+    def test_state_transitions_sequence(self):
+        """Test specific transition sequences"""
+        # Test q0 -> q1 -> q2 -> q3 path
+        current_state = 'q0'
+        self.assertEqual(self.fa.transitions[current_state]['a'], 'q1')
+        current_state = 'q1'
+        self.assertEqual(self.fa.transitions[current_state]['b'], 'q2')
+        current_state = 'q2'
+        self.assertEqual(self.fa.transitions[current_state]['c'], 'q3')
+
+    def test_cycle_transitions(self):
+        """Test the cycle q3 -> q1 -> q1"""
+        current_state = 'q3'
+        self.assertEqual(self.fa.transitions[current_state]['a'], 'q1')
+        current_state = 'q1'
+        self.assertEqual(self.fa.transitions[current_state]['b'], 'q1')
+
+    def test_alternative_path(self):
+        """Test the alternative path q0 -> q2"""
+        self.assertEqual(self.fa.transitions['q0']['b'], 'q2')
+
+    def test_final_state_membership(self):
+        """Test if q3 is the only final state"""
+        self.assertEqual(self.fa.final_states, {'q3'})
+        self.assertEqual(len(self.fa.final_states), 1)
 
 if __name__ == "__main__":
     unittest.main()

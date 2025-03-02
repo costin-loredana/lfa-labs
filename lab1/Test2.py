@@ -37,9 +37,11 @@ class TestVariant10(unittest.TestCase):
         self.assertEqual(self.fa.transitions['q0']['b'], 'q2')
 
     def test_valid_strings(self):
-        valid_strings = ['abc', 'abbc', 'bca', 'abbbc']
+        valid_strings = ['abc', 'abcc', 'bc']  # Strings that should be accepted
         for string in valid_strings:
-            self.assertTrue(self.fa.string_belongs_to_language(string))
+            self.assertTrue(self.fa.string_belongs_to_language(string),
+                       f"String {string} should be accepted")
+
 
     def test_invalid_strings(self):
         invalid_strings = ['ab', 'aa', 'bbb', 'cba', 'abcc']

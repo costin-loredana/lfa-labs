@@ -1,38 +1,44 @@
-from Grammar import Grammar
+from collections import defaultdict
 from FiniteAutomation import FiniteAutomation
 
 def main():
-    grammar = Grammar(
-        non_terminals={'S', 'B', 'L'},
-        terminals={'a', 'b', 'c'},
-        start_symbol='S',
-        rules={
-            'S': [['a', 'B']],
-            'B': [['b', 'B'], ['c', 'L']],
-            'L': [['c', 'L'], ['a', 'S'], ['b']]
-        }
-    )
-    fa = grammar.toFiniteAutomaton() 
+    # Define DFA states, alphabet, transitions, start state, and final states
+    states = {"q0", "q1", "q2", "q3"}
+    alphabet = {"a", "b", "c"}
+    transitions = {
+        "q0": {"a": "q1", "b": "q2"},
+        "q1": {"b": "q2"},
+        "q2": { "c": "q3"},
+        "q3": {"a": "q1"}
+    }
+    start_state = "q0"
+    final_states = {"q3"}
     
-    unique_strings = set()
-    while len(unique_strings) < 5:
-        generated = grammar.generate_string()
-        unique_strings.add(generated)
-
-    print("Generated unique strings:")
-    for generated in unique_strings:
-        print(generated)
-
-    print("\nFinite Automaton transitions and states:")
-    for state, transitions in fa.transitions.items():
-        print(f"State: {state}")
-        for symbol, next_state in transitions.items():
-            print(f"  {symbol} -> {next_state}")
-
-    print("\nChecking if FA accepts generated strings:")
-    for generated in unique_strings:
-        is_accepted = fa.string_belongs_to_language(generated)
-        print(f"String '{generated}' accepted: {is_accepted}")
+    # Create FiniteAutomation instance
+    dfa = FiniteAutomation(states, alphabet, transitions, start_state, final_states)
+    
+    # Print FiniteAutomation details
+    print(dfa)
+    
+    # Test string acceptance
+    test_strings = ["aab", "abba", "abab", "bbb", "aaa"]
+    for s in test_strings:
+        result = dfa.string_belongs_to_language(s)
+        print(f'String "{s}" accepted? {result}')
+    
+    # Check automaton type
+    print("Automaton type:", dfa.check_type())
+    
+    # Convert to Regular Grammar (if applicable)
+    grammar = dfa.to_regular_grammar()
+    print("Equivalent Regular Grammar:")
+    print(grammar)
+    
+    # Convert NFA to DFA (if needed)
+    if dfa.check_type() != "DFA":
+        converted_dfa = dfa.nfa_to_dfa()
+        print("Converted DFA:")
+        print(converted_dfa)
 
 if __name__ == "__main__":
     main()
