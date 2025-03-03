@@ -7,7 +7,6 @@ class NFA:
         self.transitions = transitions
         self.transition_table = dict()
         
-        # Initialize transition table
         for state in self.states:
             for alphabet in self.alphabets:
                 self.transition_table[(state, alphabet)] = []
@@ -45,11 +44,11 @@ def nfa_to_dfa(nfa):
     dfa_final_states = []
     start_state = (nfa.start,)
 
-    # Initialize DFA
+
     dfa = DFA([], nfa.alphabets, start_state, [], [])
     dfa.add_state(str(start_state), nfa.is_final(nfa.start))
 
-    # Stack to keep track of sets of NFA states
+
     unprocessed_states = [start_state]
     dfa_states.append(start_state)
     
@@ -57,7 +56,6 @@ def nfa_to_dfa(nfa):
         current_dfa_state = unprocessed_states.pop()
         
         for symbol in nfa.alphabets:
-            # Find where the NFA states go with the current symbol
             next_state = set()
             for nfa_state in current_dfa_state:
                 next_state.update(nfa.get_transitions(nfa_state, symbol))
@@ -69,13 +67,12 @@ def nfa_to_dfa(nfa):
                     dfa_states.append(next_state_tuple)
                     dfa.add_state(str(next_state_tuple), any(nfa.is_final(state) for state in next_state_tuple))
                 
-                # Add transition to the DFA
                 dfa.add_transition(str(current_dfa_state), str(next_state_tuple), symbol)
                 
     return dfa
 
 
-# Example NFA (No epsilon transitions, just simple states)
+
 states = ['q0', 'q1', 'q2', 'q3']
 alphabets = ['a', 'b', 'c']
 start = 'q0'
@@ -91,7 +88,6 @@ transitions = [
 
 nfa = NFA(states, alphabets, start, finals, transitions)
 
-# Convert NFA to DFA
 dfa = nfa_to_dfa(nfa)
 
 # Output DFA

@@ -80,25 +80,34 @@ Each state will produce a terminal symbol followed by a non-terminal symbol. Fin
 
     ```python
     def to_regular_grammar(self):
-        from Grammar import Grammar 
+        from Grammar import Grammar  
         rules = {state: [] for state in self.states}
-
+        terminals = set()
+        print("\nRegular Grammar Productions:")
         for state, transitions in self.transitions.items():
+            productions = []
             for symbol, next_states in transitions.items():
-            # Ensure next_states is a list (for handling NFAs)
-                if not isinstance(next_states, list):
-                    next_states = [next_states]
+                terminals.add(symbol)
                 for next_state in next_states:
-                    rules[state].append(f"{symbol} {next_state}")
+                    productions.append(f"{symbol} {next_state}")
+                    print(f"{state} -> {symbol} {next_state}")
 
+            rules[state] = productions
         for final_state in self.final_states:
-            rules[final_state].append("ε")  
+            rules[final_state].append("ε")
+            print(f"{final_state} -> ε")
+
+        print("\nGrammar Components:")
+        print(f"Non-terminals: {set(self.states)}")
+        print(f"Terminals: {terminals}")
+        print(f"Start symbol: {self.start_state}")
 
         return Grammar(
+            terminals=terminals,
             non_terminals=set(self.states),
-            terminals=set(self.alphabet),
             start_symbol=self.start_state,
-            rules=rules)
+            rules=rules
+    )
     ```
     
     Here, it is described the steps of finding out wether it's a DFA, NFA, or ε-NFA. I made sure to keep track wethere there are any epsilor transitions and if there are, it automatically is an e-NFA. I also recorded the symbols in a set to check if there are any repeated symbols. If there are, it is an NFA. If there are no epsilon transitions and there are no repeated symbols, it is a DFA.
@@ -106,24 +115,31 @@ Each state will produce a terminal symbol followed by a non-terminal symbol. Fin
 
     ```python
     def check_type(self):
-        has_epsilon_transitions = False
-        is_nfa = False
-
+        is_ndfa = False
+        transition_map = {}
         for state, transitions in self.transitions.items():
-            seen_symbols = set()
             for symbol, next_states in transitions.items():
-                if symbol == "ε":
-                    has_epsilon_transitions = True
-                if not isinstance(next_states, list):
-                    next_states = [next_states]
-                if len(next_states) > 1 or symbol in seen_symbols:
-                    is_nfa = True
-                seen_symbols.add(symbol)
-        if has_epsilon_transitions:
-            return "ε-NFA"  # Special type of NFA
-        elif is_nfa:
+                if not isinstance(next_states, set):  # Ensure it's a set
+                    next_states = {next_states}
+                key = (state, symbol)
+                if key in transition_map:
+                    is_ndfa = True 
+                    transition_map[key].update(next_states)
+                else:
+                    transition_map[key] = next_states
+        for (state, symbol), states in transition_map.items():
+            if len(states) > 1:
+                is_ndfa = True
+                print(f"\nThe FA is non-deterministic because from state '{state}' on symbol '{symbol}', it can transition to multiple states: {states}")
+        if len(self.transitions.get(self.start_state, {})) > 1:
+            is_ndfa = True
+            print("\nThe FA is non-deterministic because the start state has multiple outgoing transitions.")
+
+        if is_ndfa:
+            print("\nThe FA is an NFA.")
             return "NFA"
         else:
+            print("\nThe FA is a DFA.")
             return "DFA"
     ```
 
@@ -131,44 +147,44 @@ Each state will produce a terminal symbol followed by a non-terminal symbol. Fin
 to a DFA. The algorithm works by creating a new state for each possible combination of states from the NDFA. The new state is a set of states from the NDFA. I made sure to work even for e-NFA, by adding the epsilon closure of the start state to the set of states. There is also included a variable for keeping tack of all discovered DFA states. So, I used a queue to keep track of the states that need to be processed. I also used a dictionary to keep track of the mapping between the DFA states and the NDFA states. So, it will iterate over each symbol in the alphabet, ignoring e transitions, because in DFA there do not exist. For handling new DFA states, it will be converted the set into an immutable frozenset, which is hashable and can be used as a dictionary key. It checks if it is a new DFA state, it will be assigned a new name and added to the dfa_states set and the queue for processing. If next_frozen_set exists, it will be stored the DFA transition. If any state in a DFA state set is an NFA final state, that DFA state becomes a final state.
 
     ```python
-    dfa_transitions = {}
-        start_closure = frozenset(self.epsilon_closure(self.start_state))
-        dfa_states = {start_closure}
-        state_mapping = {start_closure: "q0"}
+    dfa_states = []
+        dfa_transitions = defaultdict(dict)
         dfa_final_states = set()
-        state_queue = [start_closure]
-        while state_queue:
-            current_set = state_queue.pop(0)
-            dfa_transitions[state_mapping[current_set]] = {}
+
+        start_state = frozenset([self.start_state])  
+        unprocessed_states = [start_state]
+        dfa_states.append(start_state)
+
+        while unprocessed_states:
+            current_dfa_state = unprocessed_states.pop()
             for symbol in self.alphabet:
-                if symbol == "ε":
-                    continue
-                next_set = set()
-                for state in current_set:
-                    if state in self.transitions and symbol in self.transitions[state]:
-                        for next_state in self.transitions[state][symbol]:
-                            next_set.update(self.epsilon_closure(next_state))
-                next_frozen_set = frozenset(next_set)
-                if next_frozen_set not in dfa_states and next_frozen_set:
-                    state_mapping[next_frozen_set] = f"q{len(state_mapping)}"
-                    dfa_states.add(next_frozen_set)
-                    state_queue.append(next_frozen_set)
-                if next_frozen_set:
-                    dfa_transitions[state_mapping[current_set]][symbol] = state_mapping[next_frozen_set]
-        for state_set in dfa_states:
-            if any(state in self.final_states for state in state_set):
-                dfa_final_states.add(state_mapping[state_set])
+                next_state = set()
+                for nfa_state in current_dfa_state:
+                    if nfa_state in self.transitions and symbol in self.transitions[nfa_state]:
+                        next_state.update(self.transitions[nfa_state][symbol])
+
+                if next_state:
+                    next_state_frozen = frozenset(next_state)
+                    if next_state_frozen not in dfa_states:
+                        unprocessed_states.append(next_state_frozen)
+                        dfa_states.append(next_state_frozen)
+
+                    dfa_transitions[current_dfa_state][symbol] = next_state_frozen
+
+                    if any(state in self.final_states for state in next_state):
+                        dfa_final_states.add(next_state_frozen)
     ```
 
 
-3. **The main script**
-    In this part, I declared the specific grammar I had to work with, and made sure to not have the same string over and over again.
+3. **The unit tests:**
+    In this part, I used the unittest library to test the functionality of the FA class. I created a test class called TestFA that inherits from unittest.TestCase. I defined a test method for each functionality I wanted to test. In the setUp method, I created an instance of the FA class with the specified transitions and alphabet. I also defined a test method for each functionality I wanted to test. In the setUp method, I created an instance of the FA class with the specified transitions and alphabet.
 
 ---
 ## Results and Conclusion
-![The conversion from an object of grammar to an object of FA](outputs/lab1_generated_strings.png)
-(outputs/lab1_FA.png)
-In conclusion, I can say that the program worked as intended, the grammar was respected and the final state of each word was F, because there was only one final state due to a terminal symbol - L. This ensures the fact that all of the words generated belong to the same language. 
+![Checking the type of automata and the conversion from an NDFA to DFA ](outputs/output-lab2.png.png)
+(outputs/output2-lab2.png)(outputs/output3-lab2.png)
+In conclusion, I can say that the program worked as intended, and the output was as expected. The program was able to check the type of the automata and convert an NDFA to a DFA. The output provides clear information of how the NfA and DFA work, keeping the main aspects of them: A state can have multiple possible next states for the same input symbol for NFA, and the opposite for the DFA. It also concluded the fact that regular languages can be recognized by both NFAs and DFAs.
+
 
 ---
 ## References  
