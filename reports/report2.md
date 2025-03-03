@@ -181,8 +181,10 @@ to a DFA. The algorithm works by creating a new state for each possible combinat
 
 ---
 ## Results and Conclusion
-![Checking the type of automata and the conversion from an NDFA to DFA ](outputs/output-lab2.png.png)
-(outputs/output2-lab2.png)(outputs/output3-lab2.png)
+![Checking the type of automata and the conversion from an NDFA to DFA](outputs/output-lab2.png)
+![The output of the unit test](outputs/output2-lab2.png)
+![The output of the unit test](outputs/output3-lab2.png)
+
 In conclusion, I can say that the program worked as intended, and the output was as expected. The program was able to check the type of the automata and convert an NDFA to a DFA. The output provides clear information of how the NfA and DFA work, keeping the main aspects of them: A state can have multiple possible next states for the same input symbol for NFA, and the opposite for the DFA. It also concluded the fact that regular languages can be recognized by both NFAs and DFAs.
 
 
