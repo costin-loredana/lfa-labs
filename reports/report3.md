@@ -57,6 +57,7 @@ This dictionary defines all the token types the lexer recognizes, with each key 
 
 2. **The tokenization process**
     First of all, we need a  position variable to keep track of where it is in the input text. The main loop continues until it has processed the entire input text, character by character. For each character in the input text, it checks if the current position is at the end of the input text. If it is, it breaks out of the loop. Otherwise, it checks if the current character is a whitespace character. If it is, it increments the position variable and continues to the next character. If the current character is not a whitespace character, it checks if the current position is at the end of the input text. If it is, it breaks out of the loop. Otherwise, it checks if the current character is a digit. If it is, it checks if the next character is also a digit. If it is, it appends the current character to the current token and increments the position variable. If the next character is not a digit, it appends the current character to the current token and breaks out of the loop. If the current character is not a digit, it checks if the current character is a letter. If it is, it checks if the next character is also a letter. If it is, it appends the current character to the current token and increments the position variable. If the next character is not a letter, it appends the current character to the current token and breaks out of the loop. If the current character
+
     ```python
         position = 0
         while position < len(self.input_text):
@@ -154,6 +155,7 @@ It skips any whitespace or comments between the type and name
 2. If the next token is an identifier or string, it extracts the participant name
 3. It adds the participant to the tracking dictionary with state 'active'
 This allows the validator to know which participants exist in the diagram.
+
     ```python
     if token['type'] == 'PARTICIPANT_TYPE':
     j = i + 1
@@ -169,6 +171,7 @@ This allows the validator to know which participants exist in the diagram.
             participants[participant_name] = 'active'
 
     ```
+
    In the next section, we have the lifecycle changing:
 1. For the 'new' keyword: It looks at the previous token to find the participant name. It also marks that participant as 'active' in the tracking dictionary
 2. For the 'delete' keyword: It looks at the previous token to find the participant name. It also marks that participant as 'deleted' in the tracking dictionary
@@ -190,6 +193,7 @@ This allows the validator to know when participants are created or destroyed dur
     ```
     In the next section, we have the control structure validation: When a control structure keyword (for, while, alt, etc.) is encountered: it will the keyword onto the control stack When a closing brace ('}') is encountered: it will pop the most recent control structure from the stack
 
+
     ```python
     elif token['value'] in ['for', 'while', 'alt', 'opt', 'par']:
     control_stack.append(token['value'])
@@ -205,6 +209,7 @@ If the sender is marked as 'deleted', it raises an error (can't send messages fr
 If the receiver is not in the participants dictionary, it adds it as 'active' (implicit declaration).
 If the receiver is marked as 'deleted', it raises an error (can't send messages to deleted participants)
 This enforces the rule that deleted participants cannot participate in message exchanges.
+
 
     ```python
     if sender and receiver:
@@ -223,9 +228,11 @@ This enforces the rule that deleted participants cannot participate in message e
 
     Finally, the method checks if any errors were recorded during tokenization:
 
-1. If there are errors, it formats them into a multi-line string with line and column information
-2. It raises a ValueError with all the error messages
+    1. If there are errors, it formats them into a multi-line string with line and column information
+    2. It raises a ValueError with all the error messages
+
 This ensures that any syntax errors detected during tokenization are reported along with semantic errors.
+
 
     ```python
     if self.errors:
