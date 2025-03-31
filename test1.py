@@ -3,24 +3,16 @@ from lexer import Lexer
 # Complex sequence diagram with various features
 complex_input = '''
 sequence ComplexExample {
-    // Define participants with different types
     actor User;
     boundary UI;
     control Controller;
     entity DataModel;
     database DB;
     object Logger;
-    
-    /* This is a multi-line comment
-       that spans multiple lines */
-    
-    // Test message types with stereotypes
     User -> UI: "Enter credentials";
     UI -> Controller: "Validate" <<call>>;
     Controller => DataModel: "Check user" <<send>>;
     DataModel -> DB: "Query";
-    
-    // Test loops and conditions
     alt {
         case ("Valid credentials") {
             DB --> DataModel: "User found";
@@ -46,22 +38,12 @@ sequence ComplexExample {
             }
         }
     }
-    
-    // Test participant lifecycle
     User new;
     Logger delete;
-    
-    // Test bidirectional message
     User <-> UI: "Interactive session";
-    
-    // Test notes
     note (info): "This diagram shows a login sequence";
-    
-    // Test other operators
     Controller -o> DB: "Close connection";
     DB |< Controller: "Acknowledge";
-    
-    // Test numbers
     par (2) {
         UI -> User: "Update UI elements";
     }

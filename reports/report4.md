@@ -80,7 +80,13 @@ This segment of code represents how it is generated random string from regular e
                 i += 1
                 continue
 ```
-
+The given part of the code processes character classes enclosed within square brackets ([...]) in a pattern-matching context. It identifies character ranges, negates selections if necessary, and randomly selects a character from the specified set. Below is a detailed breakdown:
+1. Detecting a Character Class
+When the character char is identified as [, the code attempts to find the corresponding closing bracket ] using pattern.find(']', i). If found, it extracts the character class content between these brackets.
+2. Handling Negation (^ Character): If the character class starts with ^, it signifies negation. The ^ is removed from char_class, and a flag (negated) is set to True.
+3. Parsing Character Ranges: The code iterates through char_class, checking for ranges (e.g., a-z). If a range is detected (j+1 contains -), it expands it into a list of characters using chr() and ord(). Otherwise, it adds individual characters to chars_to_choose.
+4. Applying Negation (if required): If negated is True, the code constructs all_chars (printable ASCII characters from 32 to 126). It then excludes chars_to_choose from all_chars, leaving only characters not in the original set.
+5. Random Selection: A random character is selected from chars_to_choose and appended to result. The index i is updated to skip past the closing ], ensuring correct parsing of the pattern.
 
 ```python
  if char == '[':
@@ -110,8 +116,14 @@ This segment of code represents how it is generated random string from regular e
                     continue
 ```
 
+This part of the code processes quantifiers (*, +, ?, and {}) in a pattern-matching scenario, determining how many times the preceding character or group should be repeated. Below is a detailed breakdown:
+1. Checking for Quantifiers: If char is one of *, +, ?, or {, and result is not empty, the last generated result (last_result) is popped from result for repetition. The variable count is initialized to 1, representing the default number of repetitions.
+2. Applying Quantifier Rules: * (zero or more times): A random count between 0 and 5 is assigned. + (one or more times): A random count between 1 and 5 is assigned. ? (zero or one time): A random count between 0 and 1 is assigned.
+3. Handling {min,max} Quantifier: If { is detected, the code searches for the closing } to extract the repetition range. The range is split at ,: . If a minimum (min_count) and maximum (max_count) are specified, a random count within this range is chosen.If only a maximum is given (e.g., {,5}), the minimum defaults to 0. If only a minimum is given (e.g., {3}), the count is set to that exact value. The index i is updated to skip past the }.
+4. Appending the Repeated Result: The extracted last_result is multiplied by count to create the repeated sequence. The modified sequence is appended back to result.
+
 ```python
-f char in '*+?{' and result:
+if char in '*+?{' and result:
                 last_result = result.pop()
                 count = 1
                 if char == '*':
@@ -137,7 +149,7 @@ f char in '*+?{' and result:
     
 3. **The explanation of the process of creating strings out of regular expressions**
 
-For explaining the process of creating strings out of regular expressions, I did a list of explanations for each pattern. If the component is numeric, it returns a message that matches the digit. If the component is not in the list, it returns a message that the component is unknown.
+For explaining the process of creating strings out of regular expressions, it is provided  a clear description of each symbol's function and generates an example string to illustrate its usage. Below is a detailed breakdown:
 
 ```python
 if '?' in pattern:
