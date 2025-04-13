@@ -64,28 +64,28 @@ class Grammar:
             return "Type-1"
         return "Type-0"
 
-    def toFiniteAutomaton(self):
-        states = self.non_terminals.copy()
-        states.add('F')  
-        alphabet = self.terminals
-        start_state = self.start_symbol
-        final_states = {'F'}  
-        transitions = {}
+    # def toFiniteAutomaton(self):
+    #     states = self.non_terminals.copy()
+    #     states.add('F')  
+    #     alphabet = self.terminals
+    #     start_state = self.start_symbol
+    #     final_states = {'F'}  
+    #     transitions = {}
 
-        for non_terminal, productions in self.rules.items():
-            for production in productions:
-                if len(production) == 0:
-                    continue
+    #     for non_terminal, productions in self.rules.items():
+    #         for production in productions:
+    #             if len(production) == 0:
+    #                 continue
                 
-                terminal = production[0]
+    #             terminal = production[0]
 
-                if non_terminal not in transitions:
-                    transitions[non_terminal] = {}
+    #             if non_terminal not in transitions:
+    #                 transitions[non_terminal] = {}
 
-                if len(production) > 1:
-                    next_state = production[1]
-                    transitions[non_terminal][terminal] = next_state
-                else:
-                    transitions[non_terminal][terminal] = 'F'  
+    #             if len(production) > 1:
+    #                 next_state = production[1]
+    #                 transitions[non_terminal][terminal] = next_state
+    #             else:
+    #                 transitions[non_terminal][terminal] = 'F'  
 
-        return FiniteAutomation(states, alphabet, transitions, start_state, final_states)
+    #     return FiniteAutomation(states, alphabet, transitions, start_state, final_states)
