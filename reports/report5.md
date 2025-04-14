@@ -45,12 +45,13 @@ The reason to use CNF:
 
 1. **Removing null productions**  
 
-This section is concerned with finding all nullable non-terminals and generating all variations of existing rules with nullable symbols removed.
+The code identifies all non-terminals that can derive ε either directly or indirectly, using a fixed-point loop. It then recursively generates all combinations of each production with nullable symbols optionally removed. This ensures that the grammar no longer relies on ε-productions while preserving language equivalence. The method _add_combinations is used to generate these variations systematically.
 
 ```python
 nullable = set(k for k, productions in self.grammar.items() if [] in productions) 
 ```
-Then, it finds all non-terminals that can directly derive `&epsilon`. Checks each production (prod) of non-terminals (k). If all symbols in a production are nullable, then k is also nullable. The loop continues until no new nullable non-terminals are found (changed = False). 
+Then, it extends the nullable set to include non-terminals that indirectly lead to ε. It checks whether all symbols in a production are already nullable, in which case the head non-terminal becomes nullable too. The loop repeats until no new nullable symbols are found. This ensures the grammar accounts for all ε derivations.
+
 ```python
 while changed:
             changed = False
@@ -63,14 +64,16 @@ while changed:
                             break
 ```
 
-It also creates new productions by omitting nullable symbols in all possible combinations. For each production (prod), recursively generates all possible combinations where nullable symbols are removed. 
+This small part recursively creates all valid versions of a production with nullable symbols removed. It uses backtracking to try all inclusion/exclusion paths for nullable symbols. These variants are stored in the updated grammar. It prevents loss of derivations when removing ε-productions.
+
+
 ```python
     self._add_combinations(k, prod, 0, [], nullable, new_grammar)         
 ```
 
 2. **Removing the unit productions**
 
-It identifies all unit productions. It begins with initialization of unit_pairs with reflexive pairs ((A, A)). If a production has length 1 and is a non-terminal, it is added to unit_pairs.
+We also need to have a function which detects direct unit productions, i.e., rules where one non-terminal leads directly to another (e.g., A → B). It starts by including reflexive pairs (like A → A) to aid in closure computation. Then it adds real unit relationships found in the grammar. These pairs are stored for further processing in the next step.
 
 ```python
         unit_pairs = {(k, k) for k in self.grammar}
@@ -81,8 +84,7 @@ It identifies all unit productions. It begins with initialization of unit_pairs 
                     unit_pairs.add((k, prod[0]))
 ```
 
-Then, it computes the transitive closure of unit pairs to find all indirect unit derivations:
-If (A → B) and (B → C) exist, then (A → C) is added. This ensures all possible unit chains are resolved.
+Then, it computes all indirect unit derivations using transitive closure logic. If A → B and B → C, then it adds A → C. The loop continues until all such indirect connections are found. It ensures that unit rules are fully resolved across the grammar.
 
 ```python
         while changed:
@@ -96,7 +98,8 @@ If (A → B) and (B → C) exist, then (A → C) is added. This ensures all poss
             unit_pairs.update(new_pairs)
 ```
 
-Finally, unit productions are replaced with their non-unit expansions: For each unit pair (A, B), all non-unit productions from B are copied to A. Duplicates are avoided by checking if the production already exists in new_grammar[a].
+Finally, it takes each unit pair and copies all non-unit productions from the second non-terminal to the first. It skips over rules that would recreate unit productions. Duplicates are avoided to keep the grammar minimal. The result is a grammar with all unit rules fully replaced.
+
 
 ```python
         new_grammar = {k: [] for k in self.grammar}
@@ -122,8 +125,7 @@ CNF requires that productions with more than one symbol on the RHS must consist 
             self.new_rules[t_name].append([symbol])
     new_prod.append(self.terminal_map[symbol])
 ```
-Then, the new terminal rules are merged into the main grammar, ensuring that all introduced rules are included in the grammar.
-
+This step incorporates the temporary T_a → a rules into the main grammar structure. It ensures each new non-terminal for terminals has a defined rule. The check prevents duplicate rules from being added. After merging, it resets the temporary rule store.
 
 ```python
  for k, v in self.new_rules.items():
@@ -137,7 +139,7 @@ Then, the new terminal rules are merged into the main grammar, ensuring that all
     
 4. **The process of having unique procution rules**
 
-In order to get uniquely production rules, it must continuously try to identify and consolidate nonterminal symbols in a grammar that are structurally equivalent. It begins by generating a *signature* for each nonterminal based on its productions, categorizing them as either binary (two elements) or unary (one element), and capturing certain properties about their structure. These signatures are grouped together to find nonterminals that share the same production patterns. Then, it further checks if the actual production patterns (not just their structural type) are identical among those nonterminals. If so, it selects one representative nonterminal (the first in the group) and maps the rest to it as substitutions, excluding the grammar’s start symbol. This process allows the grammar to be simplified by eliminating redundant or equivalent nonterminals. The loop continues indefinitely, implying that this might be part of a larger system that applies substitutions or breaks based on some condition outside the snippet.
+In order to have unique production rules, it is needed to be created a signature for each non-terminal based on the structure of its productions. It records whether the production is binary or unary, whether symbols are terminals/non-terminals, and whether both symbols are the same. These patterns are used to detect structurally equivalent non-terminals. This lays the groundwork for grammar simplification.
 
 ```python
  while True:
@@ -152,6 +154,11 @@ In order to get uniquely production rules, it must continuously try to identify 
                     else:
                         continue
                     sig_parts.append(pattern)
+```
+
+This final part clusters non-terminals with the same production patterns and replaces all but one with a shared representative. It avoids collapsing the start symbol to maintain grammar integrity. This reduces redundancy and simplifies the grammar without changing the language. It’s a form of structural optimization to make the CNF cleaner.
+
+```python
 
                 signature = frozenset(sig_parts)
                 signatures.setdefault(signature, []).append(nt)
