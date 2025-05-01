@@ -1,12 +1,7 @@
 import random
 
 def generate_string_from_pattern(pattern):
-    """
-    Generate a string that matches the given regex pattern.
-    Handles a variety of regex operations without third-party libraries.
-    """
     def parse_pattern(pattern, start=0):
-        """Recursively parse the pattern and generate a string."""
         result = []
         i = start
         
