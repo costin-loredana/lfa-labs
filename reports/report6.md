@@ -100,6 +100,7 @@ def parse(self):
 
         return Diagram(elements)
 ```
+
 Below, it is showed the participant declaration in a sequence diagram by first matching and extracting a participant type token (like "actor" or "boundary"). It then matches and extracts an identifier token that represents the participant's name. Finally, it returns a new Participant AST node initialized with both the type and name values, which becomes part of the diagram's element collection in the main parse method.
 
 ```python
@@ -126,8 +127,10 @@ def parse_if(self):
 
     return IfBlock(' '.join(condition), body)
 ```
+
 The parser first matches the if keyword and its subsequent condition inside parentheses. It then parses the body of the if block, which can contain further statements or nested blocks. Finally, the parser matches the closing brace (`}`) to complete the block and returns an IfBlock object, which will hold the condition and the body of the if statement.
 This pattern is replicated for other constructs like while loops, optional blocks (opt), and alternative blocks (alt), all of which are modeled by specific AST node types, such as WhileBlock, OptBlock, and AltBlock.
+
 ---
 ## Results and Conclusion
 ![The parse tree](outputs/lab6-1.png)
