@@ -117,6 +117,76 @@ def generate_string_from_pattern(pattern):
     
     return parse_pattern(pattern)[0]
 
+def match_pattern(pattern, text):
+    if '|' in pattern:
+        # Handle alternation
+        for option in pattern.split('|'):
+            result = match_pattern(option, text)
+            if result:
+                return result
+        return None
+
+    if pattern == 'sequence':
+        return text.startswith('sequence') and 'sequence'
+
+    if pattern in ['actor', 'object', 'boundary', 'control', 'entity', 'database']:
+        return text.startswith(pattern) and pattern
+
+    if pattern in ['for', 'while', 'alt', 'opt', 'par', 'new', 'delete', 'activate', 'deactivate', 'note', 'case', 'if', 'else']:
+        return text.startswith(pattern) and pattern
+
+    if pattern in ['<<call>>', '<<create>>']:
+        return text.startswith(pattern) and pattern
+
+    if pattern in ['==', '!=', '<=', '>=', '->', '=>', '-->', '-x>', '<->', '-o>', '|<', '=', '<', '>']:
+        return text.startswith(pattern) and pattern
+
+    if pattern == '[{}();:]':
+        if text and text[0] in '{}();:':
+            return text[0]
+
+    if pattern == '"[^"]*"':
+        if text.startswith('"'):
+            end = 1
+            while end < len(text) and text[end] != '"':
+                end += 1
+            if end < len(text):
+                return text[:end+1]
+        return None
+
+    if pattern == '//.*':
+        if text.startswith('//'):
+            end = text.find('\n')
+            return text if end == -1 else text[:end]
+
+    if pattern == '/\\*.*\\*/':
+        if text.startswith('/*'):
+            end = text.find('*/')
+            return text[:end+2] if end != -1 else None
+
+    if pattern == '\\d+':
+        i = 0
+        while i < len(text) and text[i].isdigit():
+            i += 1
+        return text[:i] if i > 0 else None
+
+    if pattern == '[a-zA-Z_][a-zA-Z0-9_]*':
+        if not text or (not text[0].isalpha() and text[0] != '_'):
+            return None
+        i = 1
+        while i < len(text) and (text[i].isalnum() or text[i] == '_'):
+            i += 1
+        return text[:i]
+
+    if pattern == '[ \t\n\r]+':
+        i = 0
+        while i < len(text) and text[i] in ' \t\n\r':
+            i += 1
+        return text[:i] if i > 0 else None
+
+    return None
+
+
 def generate_multiple_strings(pattern, count=10):
     """
     Generate multiple valid strings from a given regex pattern.
@@ -153,17 +223,17 @@ def explain_pattern(pattern):
     return explanation
 
 
-patterns = [
-    r"M?N{2}(O|P){3}Q*R+",
-    r"(X|Y|Z){3}8+(9|0){2}",
-    r"(H|i)(J|K)L*N?"
-]
+# patterns = [
+#     r"M?N{2}(O|P){3}Q*R+",
+#     r"(X|Y|Z){3}8+(9|0){2}",
+#     r"(H|i)(J|K)L*N?"
+# ]
 
-for pattern in patterns:
-    print(f"Pattern: {pattern}")
-    generated_strings = generate_multiple_strings(pattern)
-    for string in generated_strings:
-        print(f"Generated String: {string}")
-    print("===============================")
+# for pattern in patterns:
+#     print(f"Pattern: {pattern}")
+#     generated_strings = generate_multiple_strings(pattern)
+#     for string in generated_strings:
+#         print(f"Generated String: {string}")
+#     print("===============================")
 
-print(explain_pattern(patterns[2]))
+# print(explain_pattern(patterns[2]))
