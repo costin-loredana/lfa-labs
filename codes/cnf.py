@@ -27,7 +27,7 @@ class CNFConverter:
         self.deduplicate_rules()
 
         self.optimize_grammar()
-        self.deduplicate_rules()  # Final cleanup
+        self.deduplicate_rules()  
 
         return self.grammar
 
